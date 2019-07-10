@@ -1,0 +1,75 @@
+body
+{
+    margin:0;
+    padding:0;
+
+}
+
+.container
+{
+    width:100%;
+    min-height:100vh;
+    background:#D4D4D4;
+    display:flex;
+    align-items:center;
+    justify-content: safe center;
+}
+
+table
+{
+    width:100%;
+    background-color:white;
+    min-width: 500px;
+    outline:none;
+    border-collapse:collapse;
+    text-align:left
+}
+
+.columnsmall
+{
+    width:35%;
+    padding-left:15px
+}
+
+.columnbig
+{
+    width:65%;
+    padding-left:10px
+}
+
+.ctable .trow:hover td
+{
+    background-color: #737373;
+    color:white;
+}
+
+.ctable .trow td:hover
+{
+    background-color: #000000;
+    color:white;
+}
+
+.ctable tbody tr:nth-child(even)
+{
+    background-color: white;
+}
+
+.ctable tbody tr:nth-child(odd)
+{
+    background-color: #b7b7b7
+}
+
+.ctable td
+{
+    color:black;
+    line-height:1.4
+}
+
+.ctable th
+{
+    font-size:15px;
+    color:#fff;
+    line-height:1.4;
+    text-transform:uppercase;
+    background-color:#333
+}
