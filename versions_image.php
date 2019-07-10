@@ -12,24 +12,20 @@ $now = time();
 if ($now - $last_modified >= 3600 * 12) {
     $output = shell_exec('wkhtmltoimage https://sitecheck.giegler.software/ /var/www/sitecheck/screen.jpg');
     $name = '/var/www/sitecheck/screen.jpg';
-    $fp = fopen($name, 'rb');
+    $version_image_file = fopen($name, 'rb');
 
-// send the right headers
     header("Content-Type: image/png");
     header("Content-Length: " . filesize($name));
 
-// dump the picture and stop the script
-    fpassthru($fp);
+    fpassthru($version_image_file);
     exit;
 } else {
     $name = '/var/www/sitecheck/screen.jpg';
-    $fp = fopen($name, 'rb');
+    $version_image_file = fopen($name, 'rb');
 
-// send the right headers
     header("Content-Type: image/png");
     header("Content-Length: " . filesize($name));
 
-// dump the picture and stop the script
-    fpassthru($fp);
+    fpassthru($version_image_file);
     exit;
 } ?>
