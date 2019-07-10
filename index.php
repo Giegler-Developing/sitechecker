@@ -12,7 +12,7 @@ $last_updated = date("d.m.Y H:i", filemtime("cms_versions.json"));
 
 if ($now - $last_modified >= 3600 * 12) {
     include "functions.php";
-    $cms_full_array = getCMSversions();
+    $cms_full_array = getCMSversions("all",FALSE);
     $json_data = json_encode($cms_full_array);
     file_put_contents('cms_versions.json', $json_data);
     $last_updated = date("d.m.Y H:i", time());

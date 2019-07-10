@@ -6,7 +6,7 @@
  * Time: 14:36
  */
 
-$last_modified = filemtime("screen.jpg");
+$last_modified = filemtime("/var/www/sitecheck/screen.jpg");
 $now = time();
 
 if ($now - $last_modified >= 3600 * 12) {
@@ -14,22 +14,18 @@ if ($now - $last_modified >= 3600 * 12) {
     $name = '/var/www/sitecheck/screen.jpg';
     $fp = fopen($name, 'rb');
 
-// send the right headers
     header("Content-Type: image/png");
     header("Content-Length: " . filesize($name));
 
-// dump the picture and stop the script
     fpassthru($fp);
     exit;
 } else {
     $name = '/var/www/sitecheck/screen.jpg';
     $fp = fopen($name, 'rb');
 
-// send the right headers
     header("Content-Type: image/png");
     header("Content-Length: " . filesize($name));
 
-// dump the picture and stop the script
     fpassthru($fp);
     exit;
 } ?>
