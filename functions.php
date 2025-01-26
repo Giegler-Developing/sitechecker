@@ -21,17 +21,12 @@ function checkVersionExists($array_versions,$value_to_check,$version_length){
 function getVersionsViaGithub($github_url,$cms_name,$version_length,$single_version=FALSE, $useTags = FALSE){
     global $cms_array;
 
-    if(isset($_SERVER["client_id"]) AND isset($_SERVER["client_secret"])) {
-        $final_url = $github_url . "?client_id=" . $_SERVER["client_id"] . "&client_secret=" . $_SERVER["client_secret"];
-    }
-    else{
-        $final_url = $github_url;
-    }
     $ch = curl_init();
     curl_setopt_array($ch, array(
         CURLOPT_RETURNTRANSFER  => true,
-        CURLOPT_URL             => $final_url,
-        CURLOPT_USERAGENT       => 'CMS-Check 1.0 (https://gitlab.com/gidev/sitechecker)',
+        CURLOPT_URL             => $github_url,
+        CURLOPT_USERPWD         => "GITHUB_USER" . ":" . "GITHUB_TOKEN",
+        CURLOPT_USERAGENT       => 'CMS-Check 1.0 (https://github.com/Giegler-Developing/sitechecker)',
         CURLOPT_CONNECTTIMEOUT  => 2,
         CURLOPT_TIMEOUT         => 5
     ));
@@ -45,9 +40,13 @@ function getVersionsViaGithub($github_url,$cms_name,$version_length,$single_vers
         elseif($useTags == TRUE){
             preg_match('/([0-9.]+).*/', $releases_array[$i]["name"], $matches);
         }
-        if($matches[0] == $matches[1]) {
-            $cms_array_final[] = $matches[0];
-        }
+		
+		if(isset($matches[0]) && isset($matches[1]))
+		{
+			if($matches[0] == $matches[1]) {
+				$cms_array_final[] = $matches[0];
+			}
+		}
     }
 
     if($single_version == TRUE)
@@ -82,7 +81,7 @@ function getVersionsViaGithub($github_url,$cms_name,$version_length,$single_vers
         $cms_versions_final_return_code = "";
         for ($i = 0; $i < count($cms_versions_final); $i++) {
             $version_name = $cms_name . " " . substr($cms_versions_final[$i], 0, $version_length);
-            $cms_array["$version_name"] .= $cms_versions_final[$i];
+            $cms_array["$version_name"] = $cms_versions_final[$i];
             $cms_versions_final_return_code .= "<tr><td>$cms_name " . substr($cms_versions_final[$i], 0, $version_length) . "</td><td>$cms_versions_final[$i]</td></tr>";
         }
         return $cms_versions_final_return_code;
@@ -103,11 +102,11 @@ function getCMSversions($requested_cms,$single_version)
 
 // Get Newest Drupal Versions
 
-    $cms['drupal'] = getVersionsViaGithub("https://api.github.com/repos/drupal/drupal/tags", "Drupal", 1,$single_version, true);
+    $cms['drupal'] = getVersionsViaGithub("https://api.github.com/repos/drupal/drupal/tags", "Drupal", 2,$single_version, true);
 
 // Get Newest Typo3 Versions
 
-    $cms['typo3'] = getVersionsViaGithub("https://api.github.com/repos/TYPO3/TYPO3.CMS/tags", "Typo3", 1, $single_version, true);
+    $cms['typo3'] = getVersionsViaGithub("https://api.github.com/repos/TYPO3/typo3/tags", "Typo3", 2, $single_version, true);
 
 // Get Shopware Version
 
@@ -123,7 +122,7 @@ function getCMSversions($requested_cms,$single_version)
 
 // Get Nextcloud Version
 
-    $cms['nextcloud'] = getVersionsViaGithub("https://api.github.com/repos/nextcloud/server/releases", "Nextcloud", 2,$single_version);
+    $cms['nextcloud'] = getVersionsViaGithub("https://api.github.com/repos/nextcloud/server/tags", "Nextcloud", 2,$single_version, true);
 
 // Get Owncloud Version
 
@@ -155,9 +154,13 @@ function getCMSversions($requested_cms,$single_version)
 
 // Get Gambio Version
 
+/** Disable Gambio as not reachable via IPv6 
+
     $gambio_header = shell_exec("curl -L --head  https://www.gambio.de/shortify.php?s=3eUC6");
     preg_match('/filename="Gambio v(.*)\.zip"/', $gambio_header, $matches);
     $cms_array["gambio"] .= $matches[1];
+*/
+
 
     if($requested_cms == "all") {
         return $cms_array;
@@ -165,6 +168,7 @@ function getCMSversions($requested_cms,$single_version)
     elseif($requested_cms != "all" && $requested_cms != "") {
         return $cms["$requested_cms"];
     }
+
 
 }
 ?>
