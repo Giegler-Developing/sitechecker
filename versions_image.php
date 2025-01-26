@@ -6,25 +6,30 @@
  * Time: 14:36
  */
 
-$last_modified = filemtime("/var/www/sitecheck/screen.jpg");
+$force = FALSE;
+if(isset($_GET['force'])){
+$force = $_GET['force'];
+}
+$file = __DIR__."/screen.jpg";
+
+$last_modified = filemtime($file);
 $now = time();
 
-if ($now - $last_modified >= 3600 * 12) {
-    $output = shell_exec('wkhtmltoimage https://sitecheck.giegler.software/ /var/www/sitecheck/screen.jpg');
-    $name = '/var/www/sitecheck/screen.jpg';
-    $version_image_file = fopen($name, 'rb');
+if ($now - $last_modified >= 3600 * 3 OR $force == "true") {
+	$url = "https://".$_SERVER['SERVER_NAME'];
+    $output = shell_exec("/usr/local/bin/wkhtmltoimage $url $file");
+    $version_image_file = fopen($file, 'rb');
 
     header("Content-Type: image/png");
-    header("Content-Length: " . filesize($name));
+    header("Content-Length: " . filesize($file));
 
     fpassthru($version_image_file);
     exit;
 } else {
-    $name = '/var/www/sitecheck/screen.jpg';
-    $version_image_file = fopen($name, 'rb');
+    $version_image_file = fopen($file, 'rb');
 
     header("Content-Type: image/png");
-    header("Content-Length: " . filesize($name));
+    header("Content-Length: " . filesize($file));
 
     fpassthru($version_image_file);
     exit;
