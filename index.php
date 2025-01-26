@@ -6,11 +6,15 @@
  * Time: 18:11
  */
 
+$force = FALSE;
+if(isset($_GET['force'])){
+$force = $_GET['force'];
+}
 $last_modified = filemtime("cms_versions.json");
 $now = time();
 $last_updated = date("d.m.Y H:i", filemtime("cms_versions.json"));
 
-if ($now - $last_modified >= 3600 * 12) {
+if ($now - $last_modified >= 3600 * 12 OR $force == "true") {
     include "functions.php";
     $cms_full_array = getCMSversions("all",FALSE);
     $json_data = json_encode($cms_full_array);
