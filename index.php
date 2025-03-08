@@ -6,26 +6,44 @@
  * Time: 18:11
  */
 
-$force = FALSE;
-if(isset($_GET['force'])){
-$force = $_GET['force'];
-}
-$last_modified = filemtime("cms_versions.json");
-$now = time();
-$last_updated = date("d.m.Y H:i", filemtime("cms_versions.json"));
+// Constants
+define('CACHE_EXPIRATION_SECONDS', 3600 * 12);
+define('CMS_FILE_PATH', 'cms_versions.json');
 
-if ($now - $last_modified >= 3600 * 12 OR $force == "true") {
-    include "functions.php";
-    $cms_full_array = getCMSversions("all",FALSE);
-    $json_data = json_encode($cms_full_array);
-    file_put_contents('cms_versions.json', $json_data);
-    $last_updated = date("d.m.Y H:i", time());
-} else {
-    $cms_full_array = json_decode(file_get_contents("cms_versions.json"), true);
+/**
+ * Get the last modified time of a file.
+ */
+function getFileLastModifiedTime($filePath): int
+{
+    return filemtime($filePath);
 }
-ksort($cms_full_array);
-$keys = array_keys($cms_full_array);
 
+/**
+ * Updates or retrieves CMS version data.
+ */
+function updateCMSVersions(bool $isForcedUpdate): array
+{
+    $lastModified = getFileLastModifiedTime(CMS_FILE_PATH);
+    $currentTime = time();
+
+    if ($isForcedUpdate || ($currentTime - $lastModified >= CACHE_EXPIRATION_SECONDS)) {
+        include "functions.php";
+        $cmsData = getCMSversions("all", false);
+        $jsonData = json_encode($cmsData);
+        file_put_contents(CMS_FILE_PATH, $jsonData);
+    } else {
+        $cmsData = json_decode(file_get_contents(CMS_FILE_PATH), true);
+    }
+
+    ksort($cmsData);
+    return $cmsData;
+}
+
+// Main Logic
+$isForcedUpdate = isset($_GET['force']) && $_GET['force'] === "true";
+$cmsData = updateCMSVersions($isForcedUpdate);
+$keys = array_keys($cmsData);
+$lastUpdated = date("d.m.Y H:i", getFileLastModifiedTime(CMS_FILE_PATH));
 ?>
 <!DOCTYPE html>
 <html lang="en-US">
@@ -33,13 +51,12 @@ $keys = array_keys($cms_full_array);
     <title>CMS Version Information</title>
     <meta charset="UTF-8">
     <link rel="stylesheet" type="text/css" href="css/style.css">
-
 </head>
 <body>
 <div class="container">
     <div class="ctable">
         <?php
-        echo "Last updated: $last_updated";
+        echo "Last updated: $lastUpdated";
         ?>
         <table>
             <thead>
@@ -50,8 +67,8 @@ $keys = array_keys($cms_full_array);
             </thead>
             <tbody>
             <?php
-            foreach ($cms_full_array as $key => $val) {
-                echo "<tr class=\"trow\"> <td class=\"columnbig\">$key</td><td class=\"columnsmall\">" . $val . "</td>\n";
+            foreach ($cmsData as $key => $val) {
+                echo "<tr class=\"trow\"> <td class=\"columnbig\">$key</td><td class=\"columnsmall\">" . htmlspecialchars($val, ENT_QUOTES, 'UTF-8') . "</td>\n";
             }
             ?>
             </tbody>

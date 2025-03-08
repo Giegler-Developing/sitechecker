@@ -8,35 +8,47 @@
 
 include "functions.php";
 
-$last_modified = filemtime("cms_versions_single.json");
-$now = time();
-$last_updated = date("d.m.Y H:i", filemtime("cms_versions_single.json"));
+// Extract repeated values into variables
+$jsonFile = "cms_versions_single.json";
+$lastModified = filemtime($jsonFile);
+$currentTime = time();
+$timeElapsed = $currentTime - $lastModified;
 
-if ($now - $last_modified >= 3600 * 12 OR $_GET['force'] == "true") {
+// Determine if update is needed
+$forceUpdate = isset($_GET['force']) && $_GET['force'] === "true";
+$dataExpired = $timeElapsed >= 3600 * 12;
 
-    $cms_full_array = getCMSversions("all",TRUE);
-    $json_data = json_encode($cms_full_array);
-    file_put_contents('cms_versions_single.json', $json_data);
-    $last_updated = date("d.m.Y H:i", time());
+// Fetch or update CMS data if necessary
+$cmsData = fetchOrUpdateCMSData($dataExpired || $forceUpdate, $jsonFile);
+
+// Set JSON content header
+header("Content-Type: application/json");
+
+// Handle API request
+$requestedCMS = isset($_GET['cms']) ? $_GET['cms'] : null;
+if ($requestedCMS === "list_all") {
+    echo json_encode($cmsData);
+} elseif ($requestedCMS && isset($cmsData[$requestedCMS])) {
+    echo json_encode($cmsData[$requestedCMS]);
 } else {
-    $cms_full_array = json_decode(file_get_contents("cms_versions_single.json"), true);
+    echo json_encode(["empty" => "empty"]);
 }
 
-if(isset($_GET['cms']) and $_GET['cms'] != ""){
-    $api_param = $_GET['cms'];
-    if($api_param  == "list_all")
-    {
-        header("Content-Type: application/json");
-        echo json_encode($cms_full_array);
+/**
+ * Fetches CMS data or updates it if stale/forced.
+ *
+ * @param bool   $shouldUpdate Flag to specify whether data should be updated.
+ * @param string $jsonFile     Path to the JSON file.
+ *
+ * @return array The CMS data array.
+ */
+function fetchOrUpdateCMSData(bool $shouldUpdate, string $jsonFile): array
+{
+    if ($shouldUpdate) {
+        $cmsData = getCMSversions("all", true);
+        file_put_contents($jsonFile, json_encode($cmsData));
+    } else {
+        $cmsData = json_decode(file_get_contents($jsonFile), true);
     }
-    else{
-        header("Content-Type: application/json");
-        echo json_encode($cms_full_array[$api_param]);
-    }
+    return $cmsData;
 }
-else{
-    header("Content-Type: application/json");
-    echo json_encode( ["empty" => "empty"]);
-}
-
-

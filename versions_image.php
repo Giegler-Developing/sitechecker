@@ -6,31 +6,26 @@
  * Time: 14:36
  */
 
-$force = FALSE;
-if(isset($_GET['force'])){
-$force = $_GET['force'];
-}
-$file = __DIR__."/screen.jpg";
+const CACHE_EXPIRATION_TIME = 3600 * 3;
 
-$last_modified = filemtime($file);
+$isForceUpdateRequested = isset($_GET['force']) && $_GET['force'] === 'true';
+$file = __DIR__ . "/screen.jpg";
+$lastModified = filemtime($file);
 $now = time();
 
-if ($now - $last_modified >= 3600 * 3 OR $force == "true") {
-	$url = "https://".$_SERVER['SERVER_NAME'];
-    $output = shell_exec("/usr/local/bin/wkhtmltoimage $url $file");
-    $version_image_file = fopen($file, 'rb');
+// Check if the image needs to be updated
+if ($now - $lastModified >= CACHE_EXPIRATION_TIME || $isForceUpdateRequested) {
+    $url = "https://" . $_SERVER['SERVER_NAME'];
+    shell_exec("/usr/local/bin/wkhtmltoimage $url $file");
+}
 
-    header("Content-Type: image/png");
-    header("Content-Length: " . filesize($file));
+// Serve the image file
+serveImageFile($file);
 
-    fpassthru($version_image_file);
+function serveImageFile(string $filePath): void {
+    $imageFile = fopen($filePath, 'rb');
+    header("Content-Type: image/jpeg");
+    header("Content-Length: " . filesize($filePath));
+    fpassthru($imageFile);
     exit;
-} else {
-    $version_image_file = fopen($file, 'rb');
-
-    header("Content-Type: image/png");
-    header("Content-Length: " . filesize($file));
-
-    fpassthru($version_image_file);
-    exit;
-} ?>
+}
